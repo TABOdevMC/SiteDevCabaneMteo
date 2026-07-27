@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Forecast - CabaneMeteo</title>
+    <title>Advanced Weather Forecast - CabaneMeteo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🌤️ CabaneMeteo</h1>
-            <p class="subtitle">Your Weather Forecast</p>
+            <h1><i class="fas fa-cloud-sun"></i> CabaneMeteo</h1>
+            <p class="subtitle">Advanced Weather Forecast & Analysis</p>
         </header>
 
         <div class="search-container">
@@ -20,56 +22,171 @@
                 placeholder="Enter city name..." 
                 class="search-input"
             >
-            <button id="searchBtn" class="search-btn">Search</button>
-            <button id="currentLocationBtn" class="location-btn">📍 Current Location</button>
+            <button id="searchBtn" class="search-btn">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button id="currentLocationBtn" class="location-btn">
+                <i class="fas fa-location-dot"></i> Current Location
+            </button>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
 
+        <!-- Alerts/Warnings Section -->
+        <div id="alertsSection" class="alerts-section hidden">
+            <h2><i class="fas fa-exclamation-triangle"></i> Weather Alerts</h2>
+            <div id="alertsList" class="alerts-list"></div>
+        </div>
+
+        <!-- Current Weather Card -->
         <div id="currentWeather" class="weather-card hidden">
             <div class="weather-header">
                 <h2 id="cityName"></h2>
                 <p id="weatherDescription"></p>
             </div>
             <div class="weather-main">
-                <div class="temperature">
-                    <span id="temp"></span>°C
+                <div class="temperature-section">
+                    <div class="temperature">
+                        <span id="temp"></span>°C
+                    </div>
+                    <div class="temp-range">
+                        <span>H: <span id="tempMax"></span>°</span>
+                        <span>L: <span id="tempMin"></span>°</span>
+                    </div>
                 </div>
                 <div class="weather-icon">
-                    <span id="weatherIcon"></span>
+                    <i id="weatherIcon"></i>
                 </div>
             </div>
             <div class="weather-details">
                 <div class="detail">
-                    <span class="label">Feels Like</span>
+                    <span class="label"><i class="fas fa-droplets"></i> Feels Like</span>
                     <span id="feelsLike" class="value"></span>°C
                 </div>
                 <div class="detail">
-                    <span class="label">Humidity</span>
+                    <span class="label"><i class="fas fa-humidity"></i> Humidity</span>
                     <span id="humidity" class="value"></span>%
                 </div>
                 <div class="detail">
-                    <span class="label">Wind Speed</span>
+                    <span class="label"><i class="fas fa-wind"></i> Wind Speed</span>
                     <span id="windSpeed" class="value"></span> km/h
                 </div>
                 <div class="detail">
-                    <span class="label">Pressure</span>
+                    <span class="label"><i class="fas fa-gauge"></i> Pressure</span>
                     <span id="pressure" class="value"></span> hPa
                 </div>
                 <div class="detail">
-                    <span class="label">Precipitation</span>
+                    <span class="label"><i class="fas fa-cloud-rain"></i> Precipitation</span>
                     <span id="precipitation" class="value"></span> mm
                 </div>
                 <div class="detail">
-                    <span class="label">Cloud Cover</span>
+                    <span class="label"><i class="fas fa-cloud"></i> Cloud Cover</span>
                     <span id="cloudCover" class="value"></span>%
                 </div>
             </div>
         </div>
 
-        <div id="forecast" class="forecast-container hidden">
-            <h3>7-Day Forecast</h3>
+        <!-- Tabs Navigation -->
+        <div class="tabs-container hidden" id="tabsContainer">
+            <button class="tab-button active" data-tab="hourly">
+                <i class="fas fa-hourglass-half"></i> Hourly
+            </button>
+            <button class="tab-button" data-tab="daily">
+                <i class="fas fa-calendar-days"></i> 16-Day
+            </button>
+            <button class="tab-button" data-tab="charts">
+                <i class="fas fa-chart-line"></i> Charts
+            </button>
+            <button class="tab-button" data-tab="map">
+                <i class="fas fa-map"></i> Map
+            </button>
+            <button class="tab-button" data-tab="observations">
+                <i class="fas fa-telescope"></i> Observations
+            </button>
+        </div>
+
+        <!-- Hourly Forecast Tab -->
+        <div id="hourlyTab" class="tab-content active">
+            <h3><i class="fas fa-hourglass-half"></i> Hourly Forecast (Next 48 Hours)</h3>
+            <div id="hourlyCards" class="hourly-cards"></div>
+        </div>
+
+        <!-- 16-Day Forecast Tab -->
+        <div id="dailyTab" class="tab-content hidden">
+            <h3><i class="fas fa-calendar-days"></i> 16-Day Forecast</h3>
             <div id="forecastCards" class="forecast-cards"></div>
+        </div>
+
+        <!-- Charts Tab -->
+        <div id="chartsTab" class="tab-content hidden">
+            <h3><i class="fas fa-chart-line"></i> Weather Analytics</h3>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="precipitationChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="windChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Tab -->
+        <div id="mapTab" class="tab-content hidden">
+            <h3><i class="fas fa-map"></i> Weather Map</h3>
+            <div class="map-controls">
+                <button class="map-layer-btn active" data-layer="temperature">
+                    <i class="fas fa-thermometer"></i> Temperature
+                </button>
+                <button class="map-layer-btn" data-layer="rainfall">
+                    <i class="fas fa-cloud-rain"></i> Rainfall
+                </button>
+                <button class="map-layer-btn" data-layer="wind">
+                    <i class="fas fa-wind"></i> Wind
+                </button>
+                <button class="map-layer-btn" data-layer="clouds">
+                    <i class="fas fa-cloud"></i> Clouds
+                </button>
+            </div>
+            <div id="weatherMap" class="weather-map"></div>
+        </div>
+
+        <!-- Observations Tab -->
+        <div id="observationsTab" class="tab-content hidden">
+            <h3><i class="fas fa-telescope"></i> Participative Observations</h3>
+            <div class="observation-form">
+                <h4>Submit Your Observation</h4>
+                <div class="form-group">
+                    <label>Observation Type:</label>
+                    <select id="observationType">
+                        <option value="rain">Rain</option>
+                        <option value="snow">Snow</option>
+                        <option value="hail">Hail</option>
+                        <option value="thunder">Thunder</option>
+                        <option value="wind">Strong Wind</option>
+                        <option value="fog">Fog</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Intensity (1-10):</label>
+                    <input type="range" id="observationIntensity" min="1" max="10" value="5">
+                    <span id="intensityValue">5</span>
+                </div>
+                <div class="form-group">
+                    <label>Comments:</label>
+                    <textarea id="observationComment" placeholder="Describe what you observe..."></textarea>
+                </div>
+                <button id="submitObservation" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Submit Observation
+                </button>
+            </div>
+            <div id="observationsList" class="observations-list"></div>
         </div>
 
         <div id="loading" class="loading hidden">
@@ -79,10 +196,16 @@
     </div>
 
     <footer>
-        <p>Powered by <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> • No API Key Required</p>
+        <p>Powered by <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> & <a href="https://leafletjs.com/" target="_blank">Leaflet</a></p>
         <p>© 2024 CabaneMeteo. All rights reserved.</p>
     </footer>
 
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://tile.openweathermap.org/map/clouds/z/x/y.png"></script>
+    
+    <!-- Application Scripts -->
     <script src="script.js"></script>
 </body>
 </html>
